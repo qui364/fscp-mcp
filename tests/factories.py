@@ -19,7 +19,10 @@ from __future__ import annotations
 import struct
 import zlib
 from pathlib import Path
-from zipfile import ZIP_DEFLATED, ZipFile
+import xml.etree.ElementTree as ET
+from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile, ZipInfo
+
+from fscp_mcp import writer
 
 # --------------------------------------------------------------- драйверы
 
@@ -80,6 +83,11 @@ EXPECTED_DEVICES = 17
 EXPECTED_GK = 2
 EXPECTED_ZONES = 2
 
+#: АЛС, на которую вешаются приборы: сюда добавляют устройства тесты записи.
+LINE_ADDRESS = "1.2.1"
+#: АЛС второго ствола - цель для проверки переноса между линиями.
+SECOND_LINE_ADDRESS = "2.1.1"
+
 IP_ADDRESS = "1.2.1.1"
 IP_DRIVER = "ИП 212-149"
 IP_NAME = "ИП 212-149 1.2.1.1"
@@ -135,9 +143,13 @@ def _device(
 ) -> str:
     zone_uids = "".join(f"<guid>{z}</guid>" for z in zones)
     described = f"<Description>{description}</Description>" if description else ""
+    # Порядок полей сверен с рабочими конфигурациями (schema.DEVICE_FIELDS):
+    # Description идёт сразу за No, а не перед Children. XmlSerializer на
+    # чужом порядке молча теряет поле, и validate_config это ловит.
     return f"""<GKDevice>
       <UID>{uid}</UID>
       <No>0</No>
+      {described}
       <AllowMultipleVisualization>false</AllowMultipleVisualization>
       <PlanElementUIDs />
       <IsDisabled>false</IsDisabled>
@@ -145,7 +157,6 @@ def _device(
       <DriverUID>{driver}</DriverUID>
       <IsInnerKau>false</IsInnerKau>
       <IntAddress>{int_address}</IntAddress>
-      {described}
       <Children>{children}</Children>
       <Properties>{properties}</Properties>
       <DeviceProperties />
@@ -343,7 +354,7 @@ def _gk_config() -> bytes:
   <SKDZones />
   <ParameterTemplates>{template}</ParameterTemplates>
 </GKDeviceConfiguration>"""
-    return xml.encode("utf-8")
+    return _canonical(xml)
 
 
 def _point_object(
@@ -380,7 +391,6 @@ def _plans_config() -> bytes:
         <BackgroundImageSource>{JPEG_GUID}</BackgroundImageSource>
         <BackgroundSVGImageSource xsi:nil="true" />
         <Children />
-        <Width>297</Width>
         <Height>210</Height>
         <ImageType>Image</ImageType>
         <PointObjects>
@@ -391,6 +401,7 @@ def _plans_config() -> bytes:
               f"АМ4 {GROUP_ADDRESS}",
           )}
         </PointObjects>
+        <Width>297</Width>
       </Plan>"""
 
     objects = "".join(
@@ -426,14 +437,14 @@ def _plans_config() -> bytes:
       <BackgroundImageSource>{PNG_GUID}</BackgroundImageSource>
       <BackgroundSVGImageSource xsi:nil="true" />
       <Children>{nested}</Children>
-      <Width>297</Width>
       <Height>210</Height>
       <ImageType>Image</ImageType>
       <PointObjects>{objects}</PointObjects>
+      <Width>297</Width>
     </Plan>
   </Plans>
 </PlansConfiguration>"""
-    return xml.encode("utf-8")
+    return _canonical(xml)
 
 
 # ----------------------------------------------------------------- подложки
@@ -471,19 +482,65 @@ def jpeg() -> bytes:
 # ------------------------------------------------------------------ сборка
 
 
-def build(path: Path) -> Path:
+def _canonical(xml: str) -> bytes:
+    """Приводит рукописный шаблон к раскладке .NET XmlSerializer.
+
+    Шаблоны выше задают **содержимое** - какие элементы, в каком порядке и с
+    какими значениями. Раскладку (отступ по глубине, каждый элемент на своей
+    строке, пустой как <Foo />) задаёт сериализатор: расписывать её в f-строках
+    для дерева глубиной в пять уровней нечитаемо и всё равно разъедется.
+
+    Что сериализатор кладёт байт-в-байт как настоящий Global Monitor,
+    проверяется не здесь, а в test_real_configs.py на рабочих конфигурациях -
+    синтетика для такой проверки не источник истины.
+    """
+    return writer.serialize(ET.fromstring(xml), root_attrs=writer.root_header(
+        xml.encode("utf-8")
+    )[0], newline="\n")
+
+
+#: Реальные конфигурации почти всегда CRLF, поэтому синтетика по умолчанию
+#: тоже: иначе путь CRLF в сериализаторе не проверялся бы вообще - реальные
+#: конфигурации в CI не идут.
+DEFAULT_NEWLINE = "\r\n"
+
+#: Собственный таймстамп блоба Content/: в настоящем архиве подложки хранят
+#: время своей загрузки, а не время сохранения конфигурации, и запись обязана
+#: его сохранять.
+BLOB_DATE_TIME = (2025, 11, 13, 12, 58, 22)
+CONFIG_DATE_TIME = (2026, 8, 20, 20, 44, 10)
+
+
+def _eol(data: bytes, newline: str) -> bytes:
+    """Переводы строк в шаблонах записаны как \n - приводим к нужным."""
+    if newline == "\n":
+        return data
+    return data.replace(b"\n", newline.encode("utf-8"))
+
+
+def build(path: Path, newline: str = DEFAULT_NEWLINE) -> Path:
     """Полная конфигурация: тот же набор записей, что и у настоящего файла."""
+
+    def entry(name: str, date_time: tuple[int, ...] = CONFIG_DATE_TIME) -> ZipInfo:
+        info = ZipInfo(name, date_time=date_time)
+        info.compress_type = ZIP_STORED if name.endswith("/") else ZIP_DEFLATED
+        return info
+
+    layouts = b'<?xml version="1.0"?>\n<LayoutsConfiguration />'
+    security = b'<?xml version="1.0"?>\n<SecurityConfiguration />'
+    system = b'<?xml version="1.0"?>\n<SystemConfiguration />'
+
     with ZipFile(path, "w", ZIP_DEFLATED) as archive:
-        archive.writestr("Content/", b"")
-        archive.writestr("GKDeviceConfiguration.xml", _gk_config())
-        archive.writestr("LayoutsConfiguration.xml", b'<?xml version="1.0"?>\n<LayoutsConfiguration />')
-        archive.writestr("PlansConfiguration.xml", _plans_config())
-        archive.writestr("Resources/", b"")
+        archive.writestr(entry("Content/"), b"")
+        archive.writestr(entry("GKDeviceConfiguration.xml"), _eol(_gk_config(), newline))
+        archive.writestr(entry("LayoutsConfiguration.xml"), _eol(layouts, newline))
+        archive.writestr(entry("PlansConfiguration.xml"), _eol(_plans_config(), newline))
+        archive.writestr(entry("Resources/"), b"")
         # Содержимого не пишем: сервер эту запись намеренно не открывает.
-        archive.writestr("SecurityConfiguration.xml", b'<?xml version="1.0"?>\n<SecurityConfiguration />')
-        archive.writestr("SystemConfiguration.xml", b'<?xml version="1.0"?>\n<SystemConfiguration />')
-        archive.writestr(f"Content/{PNG_GUID}", png())
-        archive.writestr(f"Content/{JPEG_GUID}", jpeg())
+        archive.writestr(entry("SecurityConfiguration.xml"), _eol(security, newline))
+        archive.writestr(entry("SystemConfiguration.xml"), _eol(system, newline))
+        archive.writestr(entry(f"Content/{PNG_GUID}", BLOB_DATE_TIME), png())
+        archive.writestr(entry(f"Content/{JPEG_GUID}", BLOB_DATE_TIME), jpeg())
     return path
 
 

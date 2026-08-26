@@ -35,7 +35,7 @@ fscp-mcp = "fscp_mcp.__main__:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-fscp_mcp = ["*.json"]
+fscp_mcp = ["*.json", "skeleton/*.xml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

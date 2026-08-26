@@ -17,6 +17,50 @@ from .archive import Device, FscpArchive, ObjectRef, guid_list, text
 #: Потолок узлов в текстовом дереве — оно печатается целиком, без страниц.
 MAX_TREE_NODES = 300
 
+#: Как называть операции журнала: формы мужского, женского и среднего рода.
+#: Без согласования выходит «Зона добавлено», и журнал читается как машинный.
+EDIT_OPS: dict[str, tuple[str, str, str]] = {
+    "add": ("добавлен", "добавлена", "добавлено"),
+    "remove": ("удалён", "удалена", "удалено"),
+    "set": ("изменён", "изменена", "изменено"),
+    "move": ("перенесён", "перенесена", "перенесено"),
+    "link": ("нанесён на план", "нанесена на план", "нанесено на план"),
+    "unlink": ("снят с плана", "снята с плана", "снято с плана"),
+}
+
+#: Вид объекта и его род. Ключи те же, что в archive.COLLECTIONS, плюс
+#: устройства, планы и логика, которых там нет.
+EDIT_KINDS: dict[str, tuple[str, int]] = {
+    "device": ("устройство", 2),
+    "zone": ("зона", 1),
+    "guard_zone": ("охранная зона", 1),
+    "scenario": ("сценарий", 0),
+    "direction": ("направление", 2),
+    "mpt": ("МПТ", 0),
+    "plan": ("план", 0),
+    # «объект», а не «объект на плане»: операции link/unlink и так
+    # заканчиваются словами «на план» и «с плана».
+    "plan_object": ("объект", 0),
+    "clause": ("условие логики", 2),
+    "logic": ("логика", 1),
+}
+
+
+def edit_entry(edit: Any) -> dict[str, Any]:
+    """Одна запись журнала правок в виде, читаемом человеком."""
+    kind, gender = EDIT_KINDS.get(edit.kind, (edit.kind, 0))
+    forms = EDIT_OPS.get(edit.op)
+    action = forms[gender] if forms else edit.op
+    return {
+        "n": edit.seq,
+        "what": f"{kind} {action}".capitalize(),
+        "object": edit.name or edit.uid,
+        "details": edit.detail,
+        "uid": edit.uid,
+        "entry": edit.entry,
+    }
+
+
 
 def properties(element: ET.Element, tag: str = "Properties") -> dict[str, str]:
     container = element.find(tag)

@@ -1,1 +1,5 @@
 * text=auto eol=lf
+
+# Шаблон снят с реальных байт .NET XmlSerializer (CRLF); нормализация
+# git eol=lf испортила бы fscp_create результат.
+src/fscp_mcp/skeleton/*.xml -text

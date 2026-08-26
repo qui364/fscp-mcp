@@ -12,8 +12,10 @@ from fscp_mcp.server import server
 from . import factories
 
 
-async def call(name: str, **arguments):
-    result = await server.call_tool(name, arguments)
+async def call(tool: str, **arguments):
+    """tool, не name: несколько инструментов (add_object, add_plan, ...) сами
+    принимают параметр name, и он не должен путаться с именем инструмента."""
+    result = await server.call_tool(tool, arguments)
     blocks = result.content if hasattr(result, "content") else result
     if isinstance(blocks, tuple):
         blocks = blocks[0]
@@ -168,3 +170,176 @@ async def test_справочник_драйверов_фильтруется():
     assert all_drivers["total"] == 102
     filtered = await call("list_drivers", query="извещатель")
     assert 0 < filtered["total"] < all_drivers["total"]
+
+
+# ------------------------------------------------------------------ запись
+#
+# Инструменты проверяются через server.call_tool, а не вызовом функций: иначе
+# не проверяются ни схема аргументов, ни превращение FscpError в {"error": ...}.
+#
+# handle из conftest кэширован на всю тестовую сессию (open_archive
+# дедуплицирует по (path, mtime)) — мутация в одном тесте протекла бы в
+# следующий. Тесты записи поэтому открывают свой файл на каждый тест и сами
+# его закрывают.
+
+
+@pytest.fixture
+async def write_handle(tmp_path):
+    path = factories.build(tmp_path / "синтетика.fscp")
+    opened = await call("fscp_open", path=str(path))
+    yield opened["handle"], path
+    await call("fscp_close", handle=opened["handle"])
+
+
+@pytest.mark.anyio
+async def test_правка_копится_в_памяти_и_видна_в_diff(write_handle):
+    handle, _ = write_handle
+    before = await call("fscp_diff", handle=handle)
+    assert before["total"] == 0
+    assert before["dirty_entries"] == []
+
+    await call(
+        "add_device",
+        handle=handle,
+        parent=factories.LINE_ADDRESS,
+        driver=factories.IP_DRIVER,
+    )
+
+    after = await call("fscp_diff", handle=handle)
+    assert after["total"] == 1
+    assert after["edits"][0]["what"] == "Устройство добавлено"
+    assert after["dirty_entries"] == ["GKDeviceConfiguration.xml"]
+
+    await call("fscp_revert", handle=handle)
+    assert (await call("fscp_diff", handle=handle))["total"] == 0
+
+
+@pytest.mark.anyio
+async def test_сохранение_не_трогает_исходник(write_handle, tmp_path):
+    handle, source = write_handle
+    было = source.read_bytes()
+
+    await call(
+        "add_device",
+        handle=handle,
+        parent=factories.LINE_ADDRESS,
+        driver=factories.IP_DRIVER,
+    )
+    result = await call(
+        "fscp_save", handle=handle, out_path=str(tmp_path / "копия.fscp")
+    )
+
+    assert result["rewritten"] == ["GKDeviceConfiguration.xml"]
+    assert source.read_bytes() == было
+
+
+@pytest.mark.anyio
+async def test_сохранение_в_исходник_отвергается(write_handle):
+    handle, source = write_handle
+    result = await call("fscp_save", handle=handle, out_path=str(source))
+    assert "перезапись исходного файла" in result["error"]
+
+
+@pytest.mark.anyio
+async def test_занятый_адрес_отдаётся_текстом_а_не_трейсбеком(write_handle):
+    handle, _ = write_handle
+    result = await call(
+        "add_device",
+        handle=handle,
+        parent=factories.LINE_ADDRESS,
+        driver=factories.IP_DRIVER,
+        int_address=1,
+    )
+    assert "уже есть" in result["error"]
+    assert "Traceback" not in result["error"]
+
+
+@pytest.mark.anyio
+async def test_удаление_без_force_перечисляет_ссылки(write_handle):
+    handle, _ = write_handle
+    result = await call("remove_device", handle=handle, device=factories.IP_ADDRESS)
+    assert "ссылаются" in result["error"]
+    assert "force=true" in result["error"]
+
+
+@pytest.mark.anyio
+async def test_логика_собирается_и_читается(write_handle):
+    handle, _ = write_handle
+    scenario = await call(
+        "add_object", handle=handle, kind="scenario", name="ОПОВЕЩЕНИЕ"
+    )
+    zones = await call("list_objects", handle=handle, kind="zone")
+
+    result = await call(
+        "add_clause",
+        handle=handle,
+        owner=scenario["uid"],
+        targets=[zones["objects"][0]["uid"]],
+        state="Пожар2",
+    )
+
+    assert "Пожар2" in result["logic"]["Включение"]
+
+
+@pytest.mark.anyio
+async def test_вид_объекта_без_схемы_отказывает_понятно(write_handle):
+    handle, _ = write_handle
+    result = await call(
+        "add_object", handle=handle, kind="direction", name="Направление"
+    )
+    assert "схема известна только" in result["error"]
+
+
+@pytest.mark.anyio
+async def test_объект_наносится_на_план_и_снимается(write_handle):
+    handle, _ = write_handle
+    plan = await call("add_plan", handle=handle, name="Этаж 2")
+    device = await call("get_device", handle=handle, device=factories.IP_ADDRESS)
+
+    placed = await call(
+        "place_object",
+        handle=handle,
+        plan_uid=plan["uid"],
+        item=device["uid"],
+        left=10,
+        top=20,
+    )
+    assert placed["element"] == "PointObject"
+
+    where = await call("find_on_plans", handle=handle, uid=device["uid"])
+    assert any(p["plan"] == "Этаж 2" for p in where["placements"])
+
+    await call(
+        "remove_placement", handle=handle, plan_uid=plan["uid"], item=device["uid"]
+    )
+    where = await call("find_on_plans", handle=handle, uid=device["uid"])
+    assert not any(p["plan"] == "Этаж 2" for p in where["placements"])
+
+
+@pytest.mark.anyio
+async def test_создание_с_нуля_даёт_рабочий_handle(tmp_path):
+    created = await call("fscp_create", path=str(tmp_path / "новый.fscp"))
+
+    assert created["devices"] == 2
+    assert created["versions"]["GKDeviceConfiguration.xml"] == "2.9"
+    assert "SecurityConfiguration.xml" not in created["entries"]
+
+    tree = await call("device_tree", handle=created["handle"])
+    assert "Локальная сеть" in tree["tree"]
+    await call("fscp_close", handle=created["handle"])
+
+
+@pytest.mark.anyio
+async def test_созданный_файл_не_затирается_без_разрешения(tmp_path):
+    target = tmp_path / "новый.fscp"
+    first = await call("fscp_create", path=str(target))
+    await call("fscp_close", handle=first["handle"])
+
+    again = await call("fscp_create", path=str(target))
+    assert "уже существует" in again["error"]
+
+
+@pytest.mark.anyio
+async def test_валидатор_докладывает_о_целостности(handle):
+    report = await call("validate_config", handle=handle)
+    assert report["errors"]["total"] == 0, report["errors"]["examples"]

@@ -10,10 +10,12 @@ SecurityConfiguration.xml с хешами паролей), поэтому кат
 from __future__ import annotations
 
 import time
+import xml.etree.ElementTree as ET
+import zipfile
 
 import pytest
 
-from fscp_mcp import archive, views
+from fscp_mcp import archive, views, writer
 
 from .conftest import CONFIGS_ENV, openable_configs, real_configs
 from .test_tools import call
@@ -139,9 +141,75 @@ async def test_валидатор_ловит_устаревшие_подписи
         report = await call("validate_config", handle=opened["handle"])
         stale += report["stale_plan_labels"]["total"]
         assert report["orphan_images"] == [], config.name
+        # Проверки уровня error должны держаться на 100% рабочих конфигураций -
+        # это и есть условие, по которому им разрешено блокировать fscp_save.
+        # Предупреждения (dangling_ref, unknown_driver) не проверяются здесь:
+        # в паре конфигураций они законно есть — сам Global Monitor их пишет.
+        assert report["errors"]["total"] == 0, (config.name, report["errors"]["examples"])
     assert stale > 0
 
 
 def test_переменная_окружения_указывает_на_каталог():
     """Задан каталог, а не отдельный файл — иначе набор молча схлопнется."""
     assert real_configs(), f"{CONFIGS_ENV} указывает на каталог без .fscp"
+
+
+# ------------------------------------------------------------------- запись
+
+
+@pytest.mark.parametrize("config", CONFIGS, ids=lambda p: p.name[:18])
+def test_каждая_запись_xml_сериализуется_побайтово(config):
+    """Эталон формата задаёт сам Global Monitor - это и есть проверка.
+
+    Разобранная и записанная обратно запись обязана совпасть с исходной до
+    байта. Пока это так, любое расхождение в открытом файле - следствие правки,
+    а не сериализации. SecurityConfiguration.xml исключён: его не разбираем.
+    """
+    with zipfile.ZipFile(config) as source:
+        names = [
+            n
+            for n in source.namelist()
+            if n.endswith(".xml") and n != archive.SECURITY_CONFIG
+        ]
+        assert names, f"{config.name}: в архиве нет XML"
+        for name in names:
+            raw = source.read(name)
+            attrs, newline = writer.root_header(raw)
+            again = writer.serialize(
+                ET.fromstring(raw), root_attrs=attrs, newline=newline
+            )
+            assert again == raw, f"{config.name}/{name}"
+
+
+@pytest.mark.parametrize("config", CONFIGS, ids=lambda p: p.name[:18])
+def test_сохранение_без_правок_не_меняет_ни_одной_записи(config, tmp_path):
+    """Круг «открыть - сохранить» на рабочей конфигурации.
+
+    Проверяются и содержимое записей, и их порядок, и метаданные: порядок между
+    версиями Global Monitor не стабилен, а блобы Content/ несут собственные
+    таймстампы, отличные от времени сохранения конфигурации.
+    """
+    _, parsed = archive.open_archive(config)
+    target = tmp_path / config.name
+    parsed.save(target)
+
+    with zipfile.ZipFile(config) as before, zipfile.ZipFile(target) as after:
+        assert before.namelist() == after.namelist(), config.name
+        for name in before.namelist():
+            assert before.read(name) == after.read(name), f"{config.name}/{name}"
+            old, new = before.getinfo(name), after.getinfo(name)
+            assert old.date_time == new.date_time, f"{config.name}/{name}"
+            assert old.compress_type == new.compress_type, f"{config.name}/{name}"
+            assert old.external_attr == new.external_attr, f"{config.name}/{name}"
+
+
+def test_сохранение_крупной_конфигурации_укладывается_в_бюджет(tmp_path):
+    """25 МБ должны сохраняться за секунды, иначе инструментом не пользуются."""
+    config = largest()
+    if config.stat().st_size < 5_000_000:
+        pytest.skip("нет крупной конфигурации")
+
+    _, parsed = archive.open_archive(config)
+    started = time.perf_counter()
+    parsed.save(tmp_path / config.name)
+    assert time.perf_counter() - started < 10

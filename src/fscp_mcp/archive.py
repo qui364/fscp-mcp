@@ -15,12 +15,15 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 import zipfile
+import zlib
 from dataclasses import dataclass, field
+from datetime import datetime
 from itertools import count
 from pathlib import Path
 from typing import Any
 
-from . import drivers, images
+from . import drivers, images, writer
+from .errors import FscpError
 
 GK_CONFIG = "GKDeviceConfiguration.xml"
 PLANS_CONFIG = "PlansConfiguration.xml"
@@ -48,13 +51,65 @@ IMAGE_REF_FIELDS = ("BackgroundImageSource", "BackgroundSVGImageSource", "ImageS
 
 NIL_UID = "00000000-0000-0000-0000-000000000000"
 
+#: Контейнеры, чьи дети <guid> - ссылки на другие объекты.
+UID_LIST_TAGS = frozenset(
+    {
+        "ZoneUIDs",
+        "GuardZoneUIDs",
+        "DeviceUIDs",
+        "DirectionUIDs",
+        "DelayUIDs",
+        "DoorUIDs",
+        "MPTUIDs",
+        "PumpStationsUIDs",
+        "NSUIDs",
+        "PlanElementUIDs",
+        "MirrorUsers",
+    }
+)
+
+#: Скалярные поля-ссылки. UID - это сам объект, а DriverUID - справочник, и
+#: ни то ни другое ссылкой не является.
+SCALAR_UID_TAGS = frozenset(
+    {
+        "ItemUID",
+        "ReserveGkUID",
+        "EnterZoneUID",
+        "ExitZoneUID",
+        "PumpStationUID",
+        "DoorUID",
+        "PimUID",
+        "PlanUID",
+        "DeviceUid",
+        "IncidentUID",
+        "LocationUID",
+    }
+)
+
+
+@dataclass(frozen=True, slots=True)
+class Reference:
+    """Одна ссылка на объект по GUID - и как её вычистить.
+
+    holder держит элемент, из которого убирать: для <guid> в списке это сам
+    список, для скалярного поля - родитель. element - то, что правится.
+    """
+
+    entry: str
+    tag: str
+    element: ET.Element
+    holder: ET.Element
+    in_list: bool
+
+
 _SESSIONS: dict[str, FscpArchive] = {}
 _HANDLES = count(1)
 MAX_SESSIONS = 3
 
 
-class FscpError(Exception):
-    """Ошибка, которую можно показать пользователю без трейсбека."""
+#: FscpError объявлен в errors.py - он нужен и writer.py, который по слоям
+#: ниже архива. Имя оставлено здесь: на него завязаны server.py, views.py и тесты.
+__all__ = ["FscpError", "FscpArchive", "Device", "ObjectRef", "open_archive"]
 
 
 @dataclass(slots=True)
@@ -162,6 +217,27 @@ class FscpArchive:
         self.mtime = path.stat().st_mtime
         self.entries: list[dict[str, Any]] = []
 
+        #: Полные ZipInfo исходника: при сохранении неизменённые записи
+        #: копируются побайтово с их же compress_type, date_time и порядком.
+        self.source_entries: list[zipfile.ZipInfo] = []
+        #: На каждую XML-запись - дословная xmlns-строка корня и перевод строки.
+        #: Из дерева не восстанавливаются, а без них round-trip не побайтовый.
+        self.headers: dict[str, tuple[str, str]] = {}
+        #: Записи архива, которые правились в памяти и требуют пересборки.
+        self.dirty: set[str] = set()
+        #: Журнал правок для fscp_diff. Заполняет edits.py.
+        self.journal: list[Any] = []
+        #: Новые записи архива, которых в исходнике не было, - подложки
+        #: планов, добавленные правкой. Дописываются в конец при сохранении.
+        self.added_entries: dict[str, bytes] = {}
+        #: Обратный индекс «на кого ссылаются»: без него удаление объекта
+        #: оставило бы висячие GUID'ы в ZoneUIDs, логике и на планах.
+        self.refs_to: dict[str, list[Reference]] = {}
+        #: Сжатые исходные байты разбираемых записей - снимок для fscp_revert.
+        #: Дерево ET стоит вшестеро дороже своего XML, так что сырые байты -
+        #: самый дешёвый снимок, а не самый дорогой: 25 МБ ужимаются до ~1 МБ.
+        self.baseline: dict[str, bytes] = {}
+
         self.gk: ET.Element
         self.plans: ET.Element | None = None
 
@@ -199,8 +275,13 @@ class FscpArchive:
                 self._read_entries(archive)
                 gk_bytes = self._require(archive, GK_CONFIG)
                 self.gk = ET.fromstring(gk_bytes)
+                self.headers[GK_CONFIG] = writer.root_header(gk_bytes)
+                self.baseline[GK_CONFIG] = zlib.compress(gk_bytes, 1)
                 if PLANS_CONFIG in archive.namelist():
-                    self.plans = ET.fromstring(archive.read(PLANS_CONFIG))
+                    plans_bytes = archive.read(PLANS_CONFIG)
+                    self.plans = ET.fromstring(plans_bytes)
+                    self.headers[PLANS_CONFIG] = writer.root_header(plans_bytes)
+                    self.baseline[PLANS_CONFIG] = zlib.compress(plans_bytes, 1)
                 self._index_images(archive)
         except zipfile.BadZipFile as exc:
             raise FscpError(
@@ -212,12 +293,39 @@ class FscpArchive:
                 f"{self.path.name}: не удалось разобрать XML - {exc}"
             ) from exc
 
+        self._reindex()
+
+    def _reindex(self) -> None:
+        """Пересобирает все индексы от живого дерева.
+
+        Зовётся после каждой мутации: на самой большой конфигурации (5192
+        устройства) это 0,16 с - дешевле и надёжнее инкрементальной
+        инвалидации. Заодно чинится ловушка с id(node) в _index_plans:
+        множество узлов вложенных планов строится заново.
+        """
+        self.root_device = None
+        self.devices_by_uid = {}
+        self.devices_by_address = {}
+        self.gk_devices = []
+        self.devices_by_zone = {}
+        self.objects_by_uid = {}
+        self.objects_by_kind = {}
+        self.plans_by_uid = {}
+        self.plan_parent = {}
+        self.plan_children = {}
+        self.plan_roots = []
+        self.plan_objects_by_item = {}
+        self.plan_objects_by_plan = {}
+        self.refs_to = {}
+
         self._index_devices()
         self._index_objects()
         self._index_plans()
+        self._index_refs()
 
     def _read_entries(self, archive: zipfile.ZipFile) -> None:
         for info in archive.infolist():
+            self.source_entries.append(info)
             self.entries.append(
                 {
                     "name": info.filename,
@@ -372,6 +480,45 @@ class FscpArchive:
             if guid not in self.images:
                 self.missing_image_refs[guid] = plan_uids
 
+    def _index_refs(self) -> None:
+        """Собирает обратный индекс ссылок по обоим деревьям.
+
+        Отдельным проходом, а не внутри индексации объектов: ссылки живут в
+        произвольной глубине (логика вложена в устройство, объекты - в план),
+        и общий обход короче и понятнее, чем врезки в три разных индексатора.
+        На 25-МБ конфигурации это 0,06 с при 11 894 ссылках.
+        """
+        for entry, root in ((GK_CONFIG, self.gk), (PLANS_CONFIG, self.plans)):
+            if root is None:
+                continue
+            for parent in root.iter():
+                if parent.tag in UID_LIST_TAGS:
+                    for item in parent.findall("guid"):
+                        self._note_ref(entry, parent.tag, item, parent, True)
+                    continue
+                for child in parent:
+                    if child.tag in SCALAR_UID_TAGS and len(child) == 0:
+                        self._note_ref(entry, child.tag, child, parent, False)
+
+    def _note_ref(
+        self,
+        entry: str,
+        tag: str,
+        element: ET.Element,
+        holder: ET.Element,
+        in_list: bool,
+    ) -> None:
+        uid = (element.text or "").strip().lower()
+        if not uid or uid == NIL_UID:
+            return
+        self.refs_to.setdefault(uid, []).append(
+            Reference(entry=entry, tag=tag, element=element, holder=holder, in_list=in_list)
+        )
+
+    def referrers(self, uid: str) -> list[Reference]:
+        """Кто ссылается на объект. Пусто - удалять безопасно."""
+        return self.refs_to.get(uid.strip().lower(), [])
+
     def _note_image_ref(self, value: str, plan_uid: str) -> None:
         """Ссылка на картинку бывает двух видов: guid записи Content/ и путь
         ресурса самого Global Monitor (GKModule/Images/Zone.png) - последнего
@@ -403,6 +550,9 @@ class FscpArchive:
         info = self.images.get(guid.lower())
         if info is None:
             raise FscpError(f"в архиве нет подложки {guid}")
+        added = self.added_entries.get(info.entry)
+        if added is not None:
+            return added
         with zipfile.ZipFile(self.path) as archive:
             return archive.read(info.entry)
 
@@ -455,6 +605,114 @@ class FscpArchive:
             "images": len(self.images),
         }
 
+    # ------------------------------------------------------------ сохранение
+
+    def entry_bytes(self, name: str) -> bytes:
+        """Байты записи для сохранения: изменённая - из дерева, прочие - из файла."""
+        if name in self.dirty:
+            root = self.gk if name == GK_CONFIG else self.plans
+            if root is None:
+                raise FscpError(f"{name}: запись помечена изменённой, но дерева нет")
+            attrs, newline = self.headers.get(name, ("", writer.CRLF))
+            return writer.serialize(root, root_attrs=attrs, newline=newline)
+        return self.raw(name)
+
+    def revert(self) -> dict[str, Any]:
+        """Возвращает деревья к состоянию на момент открытия.
+
+        Разбираются заново сохранённые при открытии байты, а не файл с диска:
+        исходник мог с тех пор смениться, а откат должен вести именно туда,
+        откуда сессия стартовала.
+        """
+        undone = len(self.journal)
+        entries = sorted(self.dirty)
+        for name in entries:
+            raw = self.baseline.get(name)
+            if raw is None:
+                raise FscpError(f"{name}: нет снимка для отката")
+            root = ET.fromstring(zlib.decompress(raw))
+            if name == GK_CONFIG:
+                self.gk = root
+            else:
+                self.plans = root
+        self.dirty.clear()
+        self.journal.clear()
+        if entries:
+            self._reindex()
+        return {"reverted": undone, "entries": entries}
+
+    def save(self, target: Path, *, overwrite: bool = False) -> dict[str, Any]:
+        """Собирает архив заново по указанному пути. Исходник не трогается.
+
+        Неизменённые записи копируются побайтово вместе с их метаданными -
+        включая собственные таймстампы блобов Content/*, - и в исходном
+        порядке: он между версиями Global Monitor не стабилен, и навязывать
+        свой значит менять файл там, где мы ничего не правили.
+
+        SecurityConfiguration.xml переносится как непрозрачные байты: он не
+        разбирается и наружу не отдаётся, но без него архив неполон.
+        """
+        if target == self.path:
+            raise FscpError(
+                f"{target.name}: перезапись исходного файла не поддерживается, "
+                "укажите другой путь"
+            )
+        if target.exists() and not overwrite:
+            raise FscpError(
+                f"{target} уже существует; передайте overwrite=true, чтобы заменить"
+            )
+        if not self.path.exists():
+            raise FscpError(f"исходник {self.path} исчез; сохранить нечем")
+        if self.path.stat().st_mtime != self.mtime:
+            raise FscpError(
+                f"{self.path.name} изменился на диске; неизменённые записи берутся "
+                "из него, поэтому сохранение отменено - откройте архив заново"
+            )
+
+        target.parent.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now().timetuple()[:6]
+        # Новые записи получают тот же external_attr, что и остальные в этом
+        # архиве: он разный у разных версий Global Monitor, и своё значение
+        # выглядело бы в файле чужеродно.
+        default_attr = (
+            self.source_entries[0].external_attr if self.source_entries else 0
+        )
+        temporary = target.with_name(target.name + ".tmp")
+
+        try:
+            with zipfile.ZipFile(temporary, "w") as out:
+                for info in self.source_entries:
+                    fresh = zipfile.ZipInfo(info.filename, date_time=info.date_time)
+                    fresh.compress_type = info.compress_type
+                    fresh.external_attr = info.external_attr
+                    fresh.create_system = info.create_system
+                    if info.filename in self.dirty and not info.is_dir():
+                        fresh.date_time = stamp
+                    payload = b"" if info.is_dir() else self.entry_bytes(info.filename)
+                    out.writestr(fresh, payload)
+                    # zipfile при записи подменяет нулевой external_attr на
+                    # 0o600 << 16, а в рабочих конфигурациях он как раз нулевой.
+                    # Центральный каталог пишется при close(), так что вернуть
+                    # исходное значение объекту достаточно.
+                    fresh.external_attr = info.external_attr
+
+                for name, payload in self.added_entries.items():
+                    fresh = zipfile.ZipInfo(name, date_time=stamp)
+                    fresh.compress_type = zipfile.ZIP_DEFLATED
+                    out.writestr(fresh, payload)
+                    fresh.external_attr = default_attr
+            temporary.replace(target)
+        except OSError as exc:
+            temporary.unlink(missing_ok=True)
+            raise FscpError(f"не удалось записать {target}: {exc}") from exc
+
+        return {
+            "path": str(target),
+            "size_bytes": target.stat().st_size,
+            "entries": len(self.source_entries) + len(self.added_entries),
+            "rewritten": sorted(self.dirty),
+        }
+
 
 # ----------------------------------------------------------------- сессии
 
@@ -473,15 +731,38 @@ def open_archive(path: str | Path) -> tuple[str, FscpArchive]:
 
     mtime = resolved.stat().st_mtime
     for handle, cached in _SESSIONS.items():
+        # Тот же файл в том же состоянии - отдаём ту же сессию вместе с
+        # накопленными в ней правками: разбирать 25 МБ второй раз незачем,
+        # а две независимые сессии на один файл затирали бы друг друга.
         if cached.path == resolved and cached.mtime == mtime:
             return handle, cached
 
+    _evict()
     archive = FscpArchive(resolved)
     handle = f"fscp{next(_HANDLES)}"
     _SESSIONS[handle] = archive
-    while len(_SESSIONS) > MAX_SESSIONS:
-        _SESSIONS.pop(next(iter(_SESSIONS)))
     return handle, archive
+
+
+def _evict() -> None:
+    """Освобождает место под новый архив, не трогая несохранённые правки.
+
+    Вытеснение идёт по порядку открытия, но грязные сессии пропускаются: там
+    лежат правки, которых больше нигде нет. Если чистых не осталось - отказ с
+    перечислением handle'ов, а не молчаливая потеря работы.
+    """
+    while len(_SESSIONS) >= MAX_SESSIONS:
+        victim = next((h for h, a in _SESSIONS.items() if not a.dirty), None)
+        if victim is None:
+            busy = ", ".join(
+                f"{h} ({len(a.journal)} правок)" for h, a in _SESSIONS.items()
+            )
+            raise FscpError(
+                f"открыто {len(_SESSIONS)} архивов, и во всех есть несохранённые "
+                f"правки: {busy}. Сохраните через fscp_save или откатите через "
+                "fscp_revert, либо закройте лишний через fscp_close"
+            )
+        _SESSIONS.pop(victim)
 
 
 def session(handle: str) -> FscpArchive:
@@ -489,9 +770,9 @@ def session(handle: str) -> FscpArchive:
     if archive is None:
         known = ", ".join(_SESSIONS) or "нет открытых архивов"
         raise FscpError(f"неизвестный handle '{handle}' ({known}); вызовите fscp_open")
-    if not archive.path.exists():
+    if not archive.path.exists() and not archive.dirty:
         raise FscpError(f"файл {archive.path} исчез; откройте архив заново")
-    if archive.path.stat().st_mtime != archive.mtime:
+    if archive.path.stat().st_mtime != archive.mtime and not archive.dirty:
         raise FscpError(
             f"{archive.path.name} изменился на диске; вызовите fscp_open заново"
         )

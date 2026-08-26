@@ -1,8 +1,12 @@
 """Инструменты MCP поверх разобранного архива .fscp.
 
-Версия 1 — только чтение. Все коллекции отдаются страницами: в реальной
-конфигурации 5656 устройств и 4649 объектов на планах, целиком они в контекст
-модели не помещаются.
+Чтение и запись. Все коллекции отдаются страницами: в реальной конфигурации
+5656 устройств и 4649 объектов на планах, целиком они в контекст модели не
+помещаются.
+
+Правки копятся в открытой сессии и на диск не попадают, пока не вызван
+fscp_save, - а он всегда пишет в новый файл. Исходную конфигурацию сервер
+не перезаписывает: она единственная, а объект действующий.
 """
 
 from __future__ import annotations
@@ -16,17 +20,20 @@ from typing import Any
 from mcp.server.mcpserver import Image, MCPServer
 
 from . import archive as arch
-from . import drivers, paging, views
+from . import drivers, edits, paging, skeleton, validate, views
 from .archive import FscpError, text
 
 server = MCPServer(
     name="fscp",
     version="0.1.0",
     instructions=(
-        "Чтение конфигураций .fscp (СПЗ «Рубеж-Глобал»). Начните с fscp_open, "
-        "дальше работайте по handle. Устройства адресуются либо UID, либо "
-        "адресом вида 1.2.1.1. Подложки планов не возвращайте инлайном без "
-        "нужды — выгружайте через extract_plan_image и открывайте файлом."
+        "Чтение и правка конфигураций .fscp (СПЗ «Рубеж-Глобал»). Начните с "
+        "fscp_open, дальше работайте по handle. Устройства адресуются либо "
+        "UID, либо адресом вида 1.2.1.1. Подложки планов не возвращайте "
+        "инлайном без нужды — выгружайте через extract_plan_image и "
+        "открывайте файлом. Правки копятся в памяти: диск не меняется, пока "
+        "не вызван fscp_save, и он всегда пишет в новый файл. fscp_diff "
+        "показывает накопленное, fscp_revert откатывает."
     ),
 )
 
@@ -45,6 +52,123 @@ def tool(*args: Any, **kwargs: Any):
         return server.tool(*args, **kwargs)(wrapper)
 
     return decorate
+
+
+# -------------------------------------------------------------- сохранение
+
+
+@tool(
+    description=(
+        "Создать новую пустую конфигурацию .fscp и сразу открыть её — вернётся "
+        "handle. donor — путь к существующему .fscp, из которого побайтово "
+        "переносится SecurityConfiguration.xml (учётные записи): сервер его не "
+        "разбирает и не показывает. Без донора запись просто отсутствует, и "
+        "пользователей заводят в самом Global Monitor — примет ли он такой "
+        "файл, не проверено."
+    )
+)
+def fscp_create(
+    path: str, donor: str | None = None, overwrite: bool = False
+) -> dict[str, Any]:
+    target = Path(path).expanduser()
+    if not target.is_absolute():
+        target = (Path.cwd() / target).resolve()
+    if target.is_dir():
+        raise FscpError(f"{target} - это каталог; укажите имя файла .fscp")
+    if target.exists() and not overwrite:
+        raise FscpError(
+            f"{target} уже существует; передайте overwrite=true, чтобы заменить"
+        )
+
+    source = None
+    if donor:
+        source = Path(donor).expanduser()
+        if not source.is_absolute():
+            source = (Path.cwd() / source).resolve()
+
+    result = skeleton.create(target, donor=source)
+    handle, archive = arch.open_archive(target)
+    return {
+        "handle": handle,
+        **result,
+        **archive.summary(),
+        "hint": (
+            "дерево пустое: добавляйте ГК через add_device на «Локальную сеть». "
+            "Шаблон снят с текущей версии Global Monitor; если ваша новее, "
+            "надёжнее создать пустой файл в ней самой"
+        ),
+    }
+
+
+
+@tool(
+    description=(
+        "Сохранить конфигурацию с правками в НОВЫЙ файл .fscp. Исходник не "
+        "трогается никогда; существующий файл по пути out_path перезаписывается "
+        "только при overwrite=true. Записи, которых правка не касалась, "
+        "копируются побайтово. Перед записью идёт проверка целостности — "
+        "отключается через check=false."
+    )
+)
+def fscp_save(
+    handle: str, out_path: str, overwrite: bool = False, check: bool = True
+) -> dict[str, Any]:
+    archive = arch.session(handle)
+    target = Path(out_path).expanduser()
+    if not target.is_absolute():
+        target = (Path.cwd() / target).resolve()
+    if target.is_dir():
+        raise FscpError(f"{target} - это каталог; укажите имя файла .fscp")
+
+    if check:
+        problems = validate.preflight(archive)
+        if problems:
+            listing = "; ".join(f"{p.code}: {p.message}" for p in problems[:5])
+            more = f" и ещё {len(problems) - 5}" if len(problems) > 5 else ""
+            raise FscpError(
+                f"сохранение отменено, нарушений целостности: {len(problems)}. "
+                f"{listing}{more}. Полный список - validate_config; "
+                "check=false запишет файл как есть"
+            )
+
+    result = archive.save(target, overwrite=overwrite)
+    result["edits"] = len(archive.journal)
+    result["hint"] = (
+        "проверять результат надо открытием в Global Monitor - сервер этого не "
+        "умеет. Сессия осталась открытой, правки в ней на месте"
+    )
+    return result
+
+
+@tool(
+    description=(
+        "Что накоплено в сессии: список правок по-русски и какие записи архива "
+        "будут перезаписаны при сохранении."
+    )
+)
+def fscp_diff(
+    handle: str, offset: int = 0, limit: int = paging.DEFAULT_LIMIT
+) -> dict[str, Any]:
+    archive = arch.session(handle)
+    payload = paging.page(
+        [views.edit_entry(edit) for edit in archive.journal], offset, limit, key="edits"
+    )
+    payload["source"] = str(archive.path)
+    payload["dirty_entries"] = sorted(archive.dirty)
+    if not archive.journal:
+        payload["hint"] = "правок нет; сохранённый файл был бы копией исходного"
+    return payload
+
+
+@tool(
+    description=(
+        "Откатить все правки сессии к состоянию на момент открытия архива. "
+        "Частичный откат не поддерживается."
+    )
+)
+def fscp_revert(handle: str) -> dict[str, Any]:
+    archive = arch.session(handle)
+    return archive.revert()
 
 
 # ------------------------------------------------------------------ сессия
@@ -188,6 +312,98 @@ def device_tree(
     }
 
 
+# ------------------------------------------------------- правка устройств
+
+
+@tool(
+    description=(
+        "Добавить устройство под указанный узел дерева. driver — короткое имя "
+        "из list_drivers или UID драйвера. Без int_address берётся первый "
+        "свободный адрес на линии. count>1 добавляет несколько подряд."
+    )
+)
+def add_device(
+    handle: str,
+    parent: str,
+    driver: str,
+    int_address: int | None = None,
+    description: str = "",
+    count: int = 1,
+) -> dict[str, Any]:
+    archive = arch.session(handle)
+    created = edits.add_device(
+        archive,
+        parent=parent,
+        driver=driver,
+        int_address=int_address,
+        description=description,
+        count=count,
+    )
+    return {
+        "added": len(created),
+        "devices": [archive.devices_by_uid[uid].brief() for uid in created],
+        "hint": "правка в памяти; на диск её положит fscp_save",
+    }
+
+
+@tool(
+    description=(
+        "Изменить поля устройства: описание, IntAddress, отключение, серийный "
+        "номер, привязку к зонам, свойства GKProperty. Задавайте только то, что "
+        "меняете. Подписи на планах обновляются сами."
+    )
+)
+def set_device(
+    handle: str,
+    device: str,
+    description: str | None = None,
+    int_address: int | None = None,
+    is_disabled: bool | None = None,
+    serial_no: str | None = None,
+    zones: list[str] | None = None,
+    properties: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    archive = arch.session(handle)
+    return edits.set_device(
+        archive,
+        device=device,
+        description=description,
+        int_address=int_address,
+        is_disabled=is_disabled,
+        serial_no=serial_no,
+        zones=zones,
+        properties=properties,
+    )
+
+
+@tool(
+    description=(
+        "Перенести устройство вместе с поддеревом под другой узел — например, "
+        "перевесить прибор на другую АЛС. Без int_address адрес выбирается "
+        "свободный на новой линии."
+    )
+)
+def move_device(
+    handle: str, device: str, new_parent: str, int_address: int | None = None
+) -> dict[str, Any]:
+    archive = arch.session(handle)
+    return edits.move_device(
+        archive, device=device, new_parent=new_parent, int_address=int_address
+    )
+
+
+@tool(
+    description=(
+        "Удалить устройство вместе с поддеревом. Если на него ссылаются зоны, "
+        "логика или объекты на планах, вызов отказывает и перечисляет ссылки; "
+        "force=true удаляет вместе с ними."
+    )
+)
+def remove_device(handle: str, device: str, force: bool = False) -> dict[str, Any]:
+    archive = arch.session(handle)
+    return edits.remove_device(archive, device=device, force=force)
+
+
 # ------------------------------------------------------- зоны, сценарии и пр.
 
 
@@ -249,6 +465,111 @@ def resolve_uid(handle: str, uid: str) -> dict[str, Any]:
     return {"kind": "unknown", "uid": key, "note": "GUID не найден ни в одном индексе"}
 
 
+# ----------------------------------------------- правка объектов и логики
+
+
+@tool(
+    description=(
+        "Создать объект верхнего уровня: zone (зона) или scenario (сценарий). "
+        "Номер No назначается автоматически — следующий свободный. Виды, для "
+        "которых схема не снята с рабочих конфигураций, создать нельзя."
+    )
+)
+def add_object(
+    handle: str,
+    kind: str,
+    name: str,
+    description: str = "",
+    fields: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    archive = arch.session(handle)
+    uid = edits.add_object(
+        archive, kind=kind, name=name, description=description, fields=fields
+    )
+    return {
+        "uid": uid,
+        **views.object_detail(archive, archive.objects_by_uid[uid]),
+        "hint": "правка в памяти; на диск её положит fscp_save",
+    }
+
+
+@tool(
+    description=(
+        "Изменить поля объекта: имя, описание, Fire1Count/Fire2Count у зоны, "
+        "DelayTime/Hold/DelayRegime у сценария. Номер No не меняется никогда — "
+        "он входит в отображаемое имя и на него ссылаются."
+    )
+)
+def set_object(
+    handle: str,
+    uid: str,
+    name: str | None = None,
+    description: str | None = None,
+    fields: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    archive = arch.session(handle)
+    return edits.set_object(
+        archive, uid=uid, name=name, description=description, fields=fields
+    )
+
+
+@tool(
+    description=(
+        "Удалить зону или сценарий, вычистив ссылки на него: привязки "
+        "устройств, условия логики, объекты на планах. Без force отказывает и "
+        "перечисляет, кто ссылается."
+    )
+)
+def remove_object(handle: str, uid: str, force: bool = False) -> dict[str, Any]:
+    archive = arch.session(handle)
+    return edits.remove_object(archive, uid=uid, force=force)
+
+
+@tool(
+    description=(
+        "Добавить условие в логику устройства или объекта. group — "
+        "OnClausesGroup, OffClausesGroup, OnNowClausesGroup, OffNowClausesGroup "
+        "или StopClausesGroup. state принимается кодом (Fire2) или по-русски "
+        "(Пожар2). Список для целей и название операции выбираются по виду "
+        "целей; every=true даёт «во всех» вместо «в любом из»."
+    )
+)
+def add_clause(
+    handle: str,
+    owner: str,
+    targets: list[str],
+    state: str = "Fire2",
+    group: str = "OnClausesGroup",
+    every: bool = False,
+    join: str = "Or",
+    tag: str = "Logic",
+) -> dict[str, Any]:
+    archive = arch.session(handle)
+    return edits.add_clause(
+        archive,
+        owner=owner,
+        targets=targets,
+        state=state,
+        group=group,
+        every=every,
+        join=join,
+        tag=tag,
+    )
+
+
+@tool(
+    description=(
+        "Убрать логику: указанную группу условий целиком либо, без group, все "
+        "группы владельца."
+    )
+)
+def clear_logic(
+    handle: str, owner: str, group: str | None = None, tag: str = "Logic"
+) -> dict[str, Any]:
+    archive = arch.session(handle)
+    return edits.clear_logic(archive, owner=owner, group=group, tag=tag)
+
+
 # ------------------------------------------------------------------- планы
 
 
@@ -287,6 +608,107 @@ def _resolve_name(archive: arch.FscpArchive, uid: str) -> str:
     from . import logic
 
     return logic.resolve(archive, uid)
+
+
+# ------------------------------------------------------------ правка планов
+
+
+@tool(
+    description=(
+        "Создать план. parent_uid вкладывает его в другой план. image_path — "
+        "картинка PNG или JPEG с диска: она кладётся в Content/ архива, а "
+        "размеры плана берутся из её заголовка."
+    )
+)
+def add_plan(
+    handle: str,
+    name: str,
+    parent_uid: str | None = None,
+    width: float = 297,
+    height: float = 210,
+    image_path: str | None = None,
+    description: str = "",
+) -> dict[str, Any]:
+    archive = arch.session(handle)
+    uid = edits.add_plan(
+        archive,
+        name=name,
+        parent_uid=parent_uid,
+        width=width,
+        height=height,
+        image_path=image_path,
+        description=description,
+    )
+    return {
+        "uid": uid,
+        **views.plan_detail(archive, uid),
+        "hint": "правка в памяти; на диск её положит fscp_save",
+    }
+
+
+@tool(description="Изменить имя, описание или размеры плана.")
+def set_plan(
+    handle: str,
+    plan_uid: str,
+    name: str | None = None,
+    description: str | None = None,
+    width: float | None = None,
+    height: float | None = None,
+) -> dict[str, Any]:
+    archive = arch.session(handle)
+    return edits.set_plan(
+        archive,
+        plan_uid=plan_uid,
+        name=name,
+        description=description,
+        width=width,
+        height=height,
+    )
+
+
+@tool(
+    description=(
+        "Удалить план вместе с вложенными в него и всеми нарисованными "
+        "объектами. Без force отказывает, если удалять есть что."
+    )
+)
+def remove_plan(handle: str, plan_uid: str, force: bool = False) -> dict[str, Any]:
+    archive = arch.session(handle)
+    return edits.remove_plan(archive, plan_uid=plan_uid, force=force)
+
+
+@tool(
+    description=(
+        "Нарисовать объект ГК на плане. Устройства кладутся точкой (left, top), "
+        "зоны и сценарии — прямоугольником (нужны ещё width и height). Связь "
+        "ставится с обеих сторон."
+    )
+)
+def place_object(
+    handle: str,
+    plan_uid: str,
+    item: str,
+    left: float = 0,
+    top: float = 0,
+    width: float | None = None,
+    height: float | None = None,
+) -> dict[str, Any]:
+    archive = arch.session(handle)
+    return edits.place_object(
+        archive,
+        plan_uid=plan_uid,
+        item=item,
+        left=left,
+        top=top,
+        width=width,
+        height=height,
+    )
+
+
+@tool(description="Убрать объект с плана, сняв связь с обеих сторон.")
+def remove_placement(handle: str, plan_uid: str, item: str) -> dict[str, Any]:
+    archive = arch.session(handle)
+    return edits.remove_placement(archive, plan_uid=plan_uid, item=item)
 
 
 # --------------------------------------------------------------- подложки
@@ -517,4 +939,26 @@ def validate_config(handle: str, limit: int = 20) -> dict[str, Any]:
         "dangling_plan_objects": {"total": len(dangling), "examples": dangling[:limit]},
         "broken_image_refs": archive.missing_image_refs,
         "orphan_images": orphans,
+        **_integrity(archive, limit),
+    }
+
+
+def _integrity(archive: arch.FscpArchive, limit: int) -> dict[str, Any]:
+    """Проверки целостности, которые сторожат запись.
+
+    Ошибки блокируют fscp_save, предупреждения - нет: висячие ссылки и
+    незнакомые драйверы встречаются и в файлах, записанных самим
+    Global Monitor.
+    """
+    report = validate.inspect(archive)
+    return {
+        "errors": {
+            "total": len(report["errors"]),
+            "note": "пока они есть, fscp_save откажется писать файл",
+            "examples": report["errors"][:limit],
+        },
+        "warnings": {
+            "total": len(report["warnings"]),
+            "examples": report["warnings"][:limit],
+        },
     }

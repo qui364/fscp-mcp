@@ -1,0 +1,196 @@
+<?xml version="1.0"?>
+<GKDeviceConfiguration xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Version>
+    <MajorVersion>2</MajorVersion>
+    <MinorVersion>9</MinorVersion>
+  </Version>
+  <RootDevice>
+    <UID>{uid0}</UID>
+    <No>0</No>
+    <AllowMultipleVisualization>false</AllowMultipleVisualization>
+    <PlanElementUIDs />
+    <IsDisabled>false</IsDisabled>
+    <ReserveGkUID>00000000-0000-0000-0000-000000000000</ReserveGkUID>
+    <DriverUID>938947c5-4624-4a1a-939c-60aeebf7b65c</DriverUID>
+    <IsInnerKau>false</IsInnerKau>
+    <IntAddress>0</IntAddress>
+    <Children>
+      <GKDevice>
+        <UID>{uid1}</UID>
+        <No>0</No>
+        <AllowMultipleVisualization>false</AllowMultipleVisualization>
+        <PlanElementUIDs />
+        <IsDisabled>false</IsDisabled>
+        <ReserveGkUID>00000000-0000-0000-0000-000000000000</ReserveGkUID>
+        <DriverUID>7aa244a1-bf4c-4b4b-85c7-d9e53df3071a</DriverUID>
+        <IsInnerKau>false</IsInnerKau>
+        <IntAddress>1</IntAddress>
+        <Children />
+        <Properties />
+        <DeviceProperties />
+        <ZoneUIDs />
+        <GuardZoneUIDs />
+        <Logic>
+          <UseOffCounterLogic>true</UseOffCounterLogic>
+        </Logic>
+        <NSLogic>
+          <UseOffCounterLogic>true</UseOffCounterLogic>
+        </NSLogic>
+        <IgnoreLogicValidation>false</IgnoreLogicValidation>
+        <GKReflectionItem>
+          <MirrorUsers />
+          <GuardZoneUIDs />
+          <DeviceUIDs />
+          <DelayUIDs />
+          <DirectionUIDs />
+          <NSUIDs />
+          <MPTUIDs />
+        </GKReflectionItem>
+        <BmpDevices />
+        <AllowBeOutsideZone>false</AllowBeOutsideZone>
+        <MirrorIsAllObjects>false</MirrorIsAllObjects>
+        <KDDevices />
+        <EnterZoneUID>00000000-0000-0000-0000-000000000000</EnterZoneUID>
+        <ExitZoneUID>00000000-0000-0000-0000-000000000000</ExitZoneUID>
+        <DevicePropertiesString />
+        <HasSelfDependence>false</HasSelfDependence>
+        <UseReservedIP>false</UseReservedIP>
+        <SerialNo>0</SerialNo>
+        <CardAndSensorEnter>false</CardAndSensorEnter>
+      </GKDevice>
+    </Children>
+    <Properties />
+    <DeviceProperties />
+    <ZoneUIDs />
+    <GuardZoneUIDs />
+    <Logic>
+      <UseOffCounterLogic>true</UseOffCounterLogic>
+    </Logic>
+    <NSLogic>
+      <UseOffCounterLogic>true</UseOffCounterLogic>
+    </NSLogic>
+    <IgnoreLogicValidation>false</IgnoreLogicValidation>
+    <GKReflectionItem>
+      <MirrorUsers />
+      <GuardZoneUIDs />
+      <DeviceUIDs />
+      <DelayUIDs />
+      <DirectionUIDs />
+      <NSUIDs />
+      <MPTUIDs />
+    </GKReflectionItem>
+    <BmpDevices />
+    <AllowBeOutsideZone>false</AllowBeOutsideZone>
+    <MirrorIsAllObjects>false</MirrorIsAllObjects>
+    <KDDevices />
+    <EnterZoneUID>00000000-0000-0000-0000-000000000000</EnterZoneUID>
+    <ExitZoneUID>00000000-0000-0000-0000-000000000000</ExitZoneUID>
+    <DevicePropertiesString />
+    <HasSelfDependence>false</HasSelfDependence>
+    <UseReservedIP>false</UseReservedIP>
+    <SerialNo>0</SerialNo>
+    <CardAndSensorEnter>false</CardAndSensorEnter>
+  </RootDevice>
+  <Zones />
+  <Directions />
+  <PumpStations />
+  <MPTs />
+  <Delays />
+  <Codes />
+  <Cards />
+  <GuardZones />
+  <Doors />
+  <CatalogueGKDoors />
+  <GKDoorsCatalogueStructure>
+    <Catalogues />
+  </GKDoorsCatalogueStructure>
+  <SKDZones />
+  <ParameterTemplates />
+  <GKNameGenerationType>DriverTypePlusAddressPlusDescription</GKNameGenerationType>
+  <WritingMethodType>AllConfiguration</WritingMethodType>
+  <IgnoreFirstKauInRSGK>true</IgnoreFirstKauInRSGK>
+  <IgnoreCheckingKau>false</IgnoreCheckingKau>
+  <GKSchedulesPause>1000</GKSchedulesPause>
+  <CheckAndRewritePause>1000</CheckAndRewritePause>
+  <KDLostPause>10000</KDLostPause>
+  <EraseKDPause>1000</EraseKDPause>
+  <BMPPause>200</BMPPause>
+  <IsGKLoggerEnabled>false</IsGKLoggerEnabled>
+  <MaxSizeFileLogsMb>100</MaxSizeFileLogsMb>
+  <MaxSizeFolderLogsMb>30000</MaxSizeFolderLogsMb>
+  <UseGlobalAutomaticPim>false</UseGlobalAutomaticPim>
+  <OPCSettings>
+    <UID>{uid2}</UID>
+    <No>0</No>
+    <ZoneUIDs />
+    <GuardZoneUIDs />
+    <DeviceUIDs />
+    <DelayUIDs />
+    <DiretionUIDs />
+    <NSUIDs />
+    <MPTUIDs />
+    <DoorUIDs />
+    <TagsOnTranslit>false</TagsOnTranslit>
+  </OPCSettings>
+  <GuardZonesColorSettings>
+    <Fire1Color>
+      <A>255</A>
+      <R>255</R>
+      <G>0</G>
+      <B>0</B>
+    </Fire1Color>
+    <AttentionColor>
+      <A>255</A>
+      <R>255</R>
+      <G>165</G>
+      <B>0</B>
+    </AttentionColor>
+    <OnColor>
+      <A>255</A>
+      <R>0</R>
+      <G>128</G>
+      <B>0</B>
+    </OnColor>
+    <IgnoreColor>
+      <A>255</A>
+      <R>255</R>
+      <G>255</G>
+      <B>0</B>
+    </IgnoreColor>
+    <OffColor>
+      <A>255</A>
+      <R>0</R>
+      <G>0</G>
+      <B>255</B>
+    </OffColor>
+    <TurningOnColor>
+      <A>255</A>
+      <R>144</R>
+      <G>238</G>
+      <B>144</B>
+    </TurningOnColor>
+    <TurningOffColor>
+      <A>255</A>
+      <R>255</R>
+      <G>255</G>
+      <B>255</B>
+    </TurningOffColor>
+    <AutoOffColor>
+      <A>255</A>
+      <R>128</R>
+      <G>128</G>
+      <B>128</B>
+    </AutoOffColor>
+    <FailureColor>
+      <A>255</A>
+      <R>255</R>
+      <G>255</G>
+      <B>0</B>
+    </FailureColor>
+  </GuardZonesColorSettings>
+  <GKCardTemplates />
+  <CatalogueKDDoors />
+  <KDDoorsCatalogueStructure>
+    <Catalogues />
+  </KDDoorsCatalogueStructure>
+</GKDeviceConfiguration>

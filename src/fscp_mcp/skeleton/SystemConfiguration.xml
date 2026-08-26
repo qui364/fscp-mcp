@@ -1,0 +1,170 @@
+<?xml version="1.0"?>
+<SystemConfiguration xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Version>
+    <MajorVersion>4</MajorVersion>
+    <MinorVersion>8</MinorVersion>
+  </Version>
+  <Sounds>
+    <Sound>
+      <StateClass>Fire1</StateClass>
+      <IsContinious>false</IsContinious>
+      <Type>Fire1</Type>
+    </Sound>
+    <Sound>
+      <StateClass>Fire2</StateClass>
+      <IsContinious>false</IsContinious>
+      <Type>Fire2</Type>
+    </Sound>
+    <Sound>
+      <StateClass>Attention</StateClass>
+      <IsContinious>false</IsContinious>
+      <Type>Attention</Type>
+    </Sound>
+    <Sound>
+      <StateClass>Fire1</StateClass>
+      <IsContinious>false</IsContinious>
+      <Type>Alarm</Type>
+    </Sound>
+    <Sound>
+      <StateClass>Failure</StateClass>
+      <IsContinious>false</IsContinious>
+      <Type>Failure</Type>
+    </Sound>
+    <Sound>
+      <StateClass>Off</StateClass>
+      <IsContinious>false</IsContinious>
+      <Type>Off</Type>
+    </Sound>
+    <Sound>
+      <StateClass>TurningOn</StateClass>
+      <IsContinious>false</IsContinious>
+      <Type>TurningOn</Type>
+    </Sound>
+    <Sound>
+      <StateClass>TurningOff</StateClass>
+      <IsContinious>false</IsContinious>
+      <Type>StopStart</Type>
+    </Sound>
+    <Sound>
+      <StateClass>AutoOff</StateClass>
+      <IsContinious>false</IsContinious>
+      <Type>AutoOff</Type>
+    </Sound>
+  </Sounds>
+  <JournalFilters />
+  <Organisations />
+  <Resources />
+  <CatalogueIncidents />
+  <CatalogueStructure>
+    <Catalogues />
+  </CatalogueStructure>
+  <IncidentTypes />
+  <IncidentFilters />
+  <Priorities>
+    <IncidentPriority>
+      <UID>{uid0}</UID>
+      <No>0</No>
+      <Name>Контролируемый</Name>
+      <Value>300</Value>
+      <BackgroundColor>
+        <A>255</A>
+        <R>39</R>
+        <G>174</G>
+        <B>96</B>
+      </BackgroundColor>
+      <TextColor>
+        <A>255</A>
+        <R>255</R>
+        <G>255</G>
+        <B>255</B>
+      </TextColor>
+      <StatisticColor>
+        <A>255</A>
+        <R>39</R>
+        <G>174</G>
+        <B>96</B>
+      </StatisticColor>
+      <Image />
+    </IncidentPriority>
+    <IncidentPriority>
+      <UID>{uid1}</UID>
+      <No>0</No>
+      <Name>Опасный</Name>
+      <Value>600</Value>
+      <BackgroundColor>
+        <A>255</A>
+        <R>230</R>
+        <G>126</G>
+        <B>34</B>
+      </BackgroundColor>
+      <TextColor>
+        <A>255</A>
+        <R>255</R>
+        <G>255</G>
+        <B>255</B>
+      </TextColor>
+      <StatisticColor>
+        <A>255</A>
+        <R>230</R>
+        <G>126</G>
+        <B>34</B>
+      </StatisticColor>
+      <Image />
+    </IncidentPriority>
+    <IncidentPriority>
+      <UID>{uid2}</UID>
+      <No>0</No>
+      <Name>Критический</Name>
+      <Value>900</Value>
+      <BackgroundColor>
+        <A>255</A>
+        <R>231</R>
+        <G>76</G>
+        <B>60</B>
+      </BackgroundColor>
+      <TextColor>
+        <A>255</A>
+        <R>255</R>
+        <G>255</G>
+        <B>255</B>
+      </TextColor>
+      <StatisticColor>
+        <A>255</A>
+        <R>231</R>
+        <G>76</G>
+        <B>60</B>
+      </StatisticColor>
+      <Image />
+    </IncidentPriority>
+  </Priorities>
+  <Statuses />
+  <Categories />
+  <Locations />
+  <AutomationConfiguration>
+    <Procedures />
+    <ProceduresCatalogueStructure>
+      <Catalogues>
+        <Catalogue>
+          <UID>{uid3}</UID>
+          <Name>Корневая папка</Name>
+          <Catalogues />
+          <Items />
+        </Catalogue>
+      </Catalogues>
+    </ProceduresCatalogueStructure>
+    <AutomationSchedules />
+    <GlobalVariables>
+      <Uid>{uid4}</Uid>
+      <Name>Корневая папка</Name>
+      <Folders />
+      <Variables />
+    </GlobalVariables>
+  </AutomationConfiguration>
+  <FileNameConfiguration>
+    <FileName>{file_name}</FileName>
+  </FileNameConfiguration>
+  <CompileData>
+    <Scripts />
+    <References />
+  </CompileData>
+</SystemConfiguration>
