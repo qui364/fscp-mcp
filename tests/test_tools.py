@@ -81,9 +81,9 @@ async def test_поиск_по_описанию(handle):
 
 @pytest.mark.anyio
 async def test_логика_разворачивается_в_текст(handle):
-    delays = await call("list_objects", handle=handle, kind="delay")
-    detail = await call("get_object", handle=handle, uid=delays["objects"][0]["uid"])
-    assert detail["logic"]["Включение"] == factories.DELAY_LOGIC
+    scenarios = await call("list_objects", handle=handle, kind="scenario")
+    detail = await call("get_object", handle=handle, uid=scenarios["objects"][0]["uid"])
+    assert detail["logic"]["Включение"] == factories.SCENARIO_LOGIC
     assert detail["direction_devices"]
 
 

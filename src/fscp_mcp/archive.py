@@ -35,7 +35,7 @@ COLLECTIONS: dict[str, str] = {
     "Zones": "zone",
     "GuardZones": "guard_zone",
     "Directions": "direction",
-    "Delays": "delay",
+    "Delays": "scenario",
     "MPTs": "mpt",
     "PumpStations": "pump_station",
     "Doors": "door",
@@ -121,7 +121,7 @@ class Device:
 
 @dataclass(frozen=True, slots=True)
 class ObjectRef:
-    """Объект верхнего уровня GKDeviceConfiguration (зона, задержка, ...)."""
+    """Объект верхнего уровня GKDeviceConfiguration (зона, сценарий, ...)."""
 
     kind: str
     uid: str

@@ -90,9 +90,9 @@ Global Monitor.
 ### Связи по GUID
 
 Всё ссылается на всё голыми GUID'ами: `ZoneUIDs`/`GuardZoneUIDs` → зоны,
-`PlanElementUIDs` → объекты планов, `GKClause` → устройства/зоны/задержки/
+`PlanElementUIDs` → объекты планов, `GKClause` → устройства/зоны/сценарии/
 направления/МПТ/НС. Объект плана ссылается на объект ГК парой
-`ItemUID` + `ObjectName` (`GKDevice` | `GKZone` | `GKDelay`).
+`ItemUID` + `ObjectName` (`GKDevice` | `GKZone` | `GKDelay` — объект сценария).
 
 Разрешать GUID через `logic.resolve()` либо инструментом `resolve_uid` —
 руками по индексам не искать.

@@ -56,7 +56,7 @@ D_IP3 = "11111111-0000-4000-8000-000000000011"
 
 ZONE1 = "22222222-0000-4000-8000-000000000001"
 ZONE2 = "22222222-0000-4000-8000-000000000002"
-DELAY1 = "22222222-0000-4000-8000-000000000003"
+SCENARIO1 = "22222222-0000-4000-8000-000000000003"
 DIRECTION1 = "22222222-0000-4000-8000-000000000004"
 TEMPLATE = "22222222-0000-4000-8000-000000000005"
 TEMPLATE_DEVICE = "22222222-0000-4000-8000-000000000006"
@@ -102,8 +102,8 @@ GK_IPS = ("172.16.5.11", "172.16.5.12")
 SECOND_TRUNK_ADDRESS = "2.1.1.1"
 
 ZONE_NAMES = ("1.Склад", "2.Коридор")
-DELAY_NAME = "1.ЛИФТЫ"
-DELAY_LOGIC = "Если Пожар2 в любой из зон: 1.Склад, 2.Коридор"
+SCENARIO_NAME = "1.ЛИФТЫ"
+SCENARIO_LOGIC = "Если Пожар2 в любой из зон: 1.Склад, 2.Коридор"
 
 PLAN_NAME = "Этаж 1"
 NESTED_PLAN_NAME = "Серверная"
@@ -243,9 +243,9 @@ def _gk_config() -> bytes:
     )
 
     delay = f"""<GKDelay>
-      <UID>{DELAY1}</UID>
-      <No>{DELAY_NAME.partition(".")[0]}</No>
-      <Name>{DELAY_NAME.partition(".")[2]}</Name>
+      <UID>{SCENARIO1}</UID>
+      <No>{SCENARIO_NAME.partition(".")[0]}</No>
+      <Name>{SCENARIO_NAME.partition(".")[2]}</Name>
       <PlanElementUIDs />
       <DelayTime>0</DelayTime>
       <Hold>0</Hold>

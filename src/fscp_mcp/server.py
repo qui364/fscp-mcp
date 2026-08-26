@@ -188,10 +188,10 @@ def device_tree(
     }
 
 
-# ------------------------------------------------------- зоны, задержки и пр.
+# ------------------------------------------------------- зоны, сценарии и пр.
 
 
-@tool(description="Объекты верхнего уровня: zone, guard_zone, delay, direction, mpt, door и др.")
+@tool(description="Объекты верхнего уровня: zone, guard_zone, scenario, direction, mpt, door и др.")
 def list_objects(
     handle: str,
     kind: str = "zone",
@@ -211,7 +211,7 @@ def list_objects(
     return paging.page([i.brief() for i in items], offset, limit, key="objects")
 
 
-@tool(description="Карточка объекта верхнего уровня (зона, задержка, направление) по UID.")
+@tool(description="Карточка объекта верхнего уровня (зона, сценарий, направление) по UID.")
 def get_object(handle: str, uid: str) -> dict[str, Any]:
     archive = arch.session(handle)
     return views.object_detail(archive, archive.object(uid))
