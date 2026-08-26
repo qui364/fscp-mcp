@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fscp-mcp"
+version = "0.1.0"
+description = "MCP-сервер для чтения конфигураций .fscp (СПЗ Рубеж-Глобал)"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = ["mcp>=2.1.1"]
+
+[project.optional-dependencies]
+img = ["pillow>=12.3"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+fscp-mcp = "fscp_mcp.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+fscp_mcp = ["*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

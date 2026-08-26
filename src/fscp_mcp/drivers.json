@@ -1,0 +1,920 @@
+[
+  {
+    "uid": "938947c5-4624-4a1a-939c-60aeebf7b65c",
+    "short": "Локальная сеть",
+    "description": "Локальная сеть",
+    "category": "",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "7aa244a1-bf4c-4b4b-85c7-d9e53df3071a",
+    "short": "РСГК",
+    "description": "Резервная система групповых контроллеров",
+    "category": "",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "c052395d-043f-4590-a0b8-bc49867adc6a",
+    "short": "ГК",
+    "description": "Групповой контроллер",
+    "category": "",
+    "no_address": true,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "848642dd-be2f-443b-9739-ff6c7c06dc4c",
+    "short": "Группа индикаторов",
+    "description": "Группа индикаторов",
+    "category": "",
+    "no_address": true,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "200eed4b-3402-45b4-8122-ae51a4841e18",
+    "short": "Индикатор",
+    "description": "Индикатор ГК",
+    "category": "",
+    "no_address": true,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "77980273-4b1d-4acc-915e-95ffdcd1dd02",
+    "short": "Группа реле",
+    "description": "Группа реле",
+    "category": "",
+    "no_address": true,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "1ac85436-61bc-441b-b6bf-c6a0fa62748b",
+    "short": "Реле",
+    "description": "Реле ГК",
+    "category": "",
+    "no_address": true,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "72b08282-457d-4e7b-b86f-ebcc0cc4ef03",
+    "short": "ТПУ",
+    "description": "Терминальный пульт управления",
+    "category": "",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "57c45124-9300-49bc-a268-68f3d929927b",
+    "short": "КАУ",
+    "description": "Контроллер адресных устройств",
+    "category": "",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "17a2b7d1-cb62-4af7-940e-bc30b004b0d0",
+    "short": "Индикатор Неисправность КАУ",
+    "description": "Индикатор Неисправность КАУ",
+    "category": "",
+    "no_address": true,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "4d5647df-a278-48f6-9f89-19e4d51b7711",
+    "short": "АЛС",
+    "description": "АЛС",
+    "category": "",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "31b04ff3-0a6d-423d-887f-ae39b62baf95",
+    "short": "ИП 101-52-PR",
+    "description": "Извещатель пожарный тепловой",
+    "category": "Извещатели пожарные",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "1cce48eb-b60b-4e06-8290-a39591cd3da2",
+    "short": "ИП 212/101-11-PR",
+    "description": "Извещатель пожарный комбинированный дымовой оптико-электронный тепловой максимально-дифференциальный",
+    "category": "Извещатели пожарные",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "a50ffa41-b53e-4b3b-addf-cdbba631feb2",
+    "short": "ИП 212-149",
+    "description": "Извещатель пожарный дымовой оптико-электронный адресно-аналоговый",
+    "category": "Извещатели пожарные",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "d3e734e7-a38d-45f9-a1b9-7aa69c23d30f",
+    "short": "ИПДЛ-249/1",
+    "description": "Извещатель пожарный линейный дымовой",
+    "category": "Извещатели пожарные",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "151881a2-0a39-4609-870f-4a84b2f8a4c8",
+    "short": "ИПР-513-12",
+    "description": "Извещатель пожарный ручной электроконтактный адресный",
+    "category": "Извещатели пожарные",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "b3996dcb-0743-4a00-921b-d1e3ffdb39da",
+    "short": "ИПР-ИКЗ",
+    "description": "Извещатель пожарный ручной электроконтактный адресный с изолятором",
+    "category": "Извещатели пожарные",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "bd3a0139-d9fd-4224-b5d6-8772ba9e3760",
+    "short": "ИОВ",
+    "description": "Извещатель магнитоуправляемый ИО 10220-1",
+    "category": "Извещатели охранные",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "501aa41f-248b-4a4e-982a-6bc93505c7a9",
+    "short": "ИО-ИК",
+    "description": "Извещатель охранный поверхностный ИО 30920-1/объемный ИО 40920-1",
+    "category": "Извещатели охранные",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "38618571-fa63-4a8f-9d39-f16e36567e32",
+    "short": "ИО-ПЗ",
+    "description": "Извещатель поверхностный звуковой ИО 32920-1",
+    "category": "Извещатели охранные",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "1582d8a4-4276-4aef-be8b-03c0023f1bff",
+    "short": "МАВ",
+    "description": "Метка адресная выключаемая",
+    "category": "Извещатели охранные",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "d34219d9-3b49-4b12-866c-f75cb2b93845",
+    "short": "БМП",
+    "description": "Блок модульного пожаротушения",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "8bfbb420-04fb-47fb-b2c7-2ca38561c444",
+    "short": "БМП2",
+    "description": "Блок модульного пожаротушения (с кольцевой АЛС)",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "5954d868-cad7-47de-ad13-87a49e07c5b7",
+    "short": "БМПК",
+    "description": "Кнопка БМП",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "f388f0e0-001e-4bae-89de-0b512a684324",
+    "short": "БМПУИ",
+    "description": "Исполнительное устройство БМП",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "d2dd5e51-dc72-4106-8054-78b136b10a18",
+    "short": "БМПП",
+    "description": "Питание БМП",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "33d7122b-0898-433a-ba1c-212231e5c211",
+    "short": "Линия БМП",
+    "description": "Линия БМП",
+    "category": "Исполнителные устройства",
+    "no_address": true,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "f2d21f78-a237-4cfb-b61a-2d8b8b9163f6",
+    "short": "ИС",
+    "description": "Индикатор состояния",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "13286be1-d14d-479e-8f44-e98225340f7c",
+    "short": "КПП",
+    "description": "Контроллер пиропатрона",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "3e55acef-d0d6-443a-a247-e9d5d116429a",
+    "short": "МВК",
+    "description": "Модуль выходов с контролем",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "2abaf6c0-6b9b-4658-8ab6-7ff15914b06f",
+    "short": "МВК2",
+    "description": "Модуль выходов с контролем групповой",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "d3fd9de2-d2e8-4dac-b44e-82b202be3534",
+    "short": "МВК4",
+    "description": "Модуль выходов с контролем групповой",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "5ee43f54-5f4c-4412-8797-3d7f9a92d2e3",
+    "short": "МВК8",
+    "description": "Модуль выходов с контролем групповой",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "1bd3cdb3-7427-4fe8-9b56-22c14c9f5435",
+    "short": "МДУ220",
+    "description": "Модуль автоматики дымоудаления",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "2c149b68-ffe9-4680-b3cb-be4cd37bf646",
+    "short": "МДУ24",
+    "description": "Модуль автоматики дымоудаления 24В",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "58c2a881-783f-4638-a27c-42257d5b31f9",
+    "short": "РМ",
+    "description": "Релейный модуль",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "a2959070-bb9d-45c0-8113-f9662a1ce7bf",
+    "short": "РМ2",
+    "description": "Релейный модуль групповой",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "e3001bbb-18da-437d-ab73-56c701f070d4",
+    "short": "РМ4",
+    "description": "Релейный модуль групповой",
+    "category": "Исполнителные устройства",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "21436e97-8b37-4b92-a4d6-d076c6d39d4d",
+    "short": "БУЗ КВ (БАЭС)",
+    "description": "Блок управления задвижкой КВ (БАЭС)",
+    "category": "Шкафы управления",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "79d5b336-8892-4d56-929c-1d95f0ff0992",
+    "short": "БУЗ КВ-ДУ (БАЭС)",
+    "description": "Блок управления задвижкой КВ-ДУ (БАЭС)",
+    "category": "Шкафы управления",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "38e9171d-a80b-4b6a-9c49-620d5b190976",
+    "short": "БУЗ КВ-МВ (БАЭС)",
+    "description": "Блок управления задвижкой КВ-МВ (БАЭС)",
+    "category": "Шкафы управления",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "08e8c44c-16b7-469f-aeea-c48d32240682",
+    "short": "ШУЗ-КВ",
+    "description": "Шкаф управления задвижкой КВ (тип управления 1)",
+    "category": "Шкафы управления",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "56d46127-12c2-4d6c-ba9b-99503e897909",
+    "short": "ШУЗ-КВ-ДУ",
+    "description": "Шкаф управления задвижкой КВ-ДУ (тип управления 3)",
+    "category": "Шкафы управления",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "d37a46c3-0748-4e67-8d10-dd17c23e8f53",
+    "short": "ШУЗ-КВ-МВ",
+    "description": "Шкаф управления задвижкой КВ-МВ (тип управления 2)",
+    "category": "Шкафы управления",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "b33e2d92-e3c5-4309-8897-c9ef7c81e568",
+    "short": "ШУН-В",
+    "description": "Шкаф управления вентилятором",
+    "category": "Шкафы управления",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "61d323cb-24a8-4a8f-ba7b-2afcc7618521",
+    "short": "ШУН-В-К",
+    "description": "Шкаф управления вентилятором - калорифером",
+    "category": "Шкафы управления",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "1743fa7e-ef69-45b7-90cd-d9bf2b44644c",
+    "short": "ШУН-ДН",
+    "description": "Шкаф управления Дренажным Насосом",
+    "category": "Шкафы управления",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "0f6b6aee-4d7a-4e9d-9c16-0072cdc40932",
+    "short": "ШУН-ЖН",
+    "description": "Шкаф управления Жокей Насосом",
+    "category": "Шкафы управления",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "6c9192c9-2841-46b6-b653-7834efa41041",
+    "short": "ШУН-ПН",
+    "description": "Шкаф управления Пожарным Насосом",
+    "category": "Шкафы управления",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "a8ac8a76-064b-4ed0-a071-37b4a15958a7",
+    "short": "ОПОП-1",
+    "description": "Оповещатель световой ОПОП 1",
+    "category": "Оповещатели",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "7e03462f-d397-449c-a7b7-48abed3579d1",
+    "short": "ОПОП-124",
+    "description": "Оповещатель комбинированный светозвуковой ОПОП 124",
+    "category": "Оповещатели",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "8e339f21-e32e-4548-adc3-3ab6c0d2768a",
+    "short": "ОПКС",
+    "description": "Оповещатель пожарный световой адресный комбинированный",
+    "category": "Оповещатели",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "8a277079-341b-4933-beb7-4e34b58199d7",
+    "short": "ОПКЗ",
+    "description": "Оповещатель звуковой адресный комбинированный",
+    "category": "Оповещатели",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "24a6fc19-0428-43a9-8b1c-35b748bd202b",
+    "short": "ОПОП-2",
+    "description": "Оповещатель звуковой ОПОП 2",
+    "category": "Оповещатели",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "860f3f6a-9ee9-437b-8220-b66afddbd285",
+    "short": "АМ",
+    "description": "Адресная метка",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "f8496e34-8f48-436f-954c-79b6ba918bbb",
+    "short": "АМ2",
+    "description": "Адресная метка групповая",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "79eac50a-d534-4775-a102-be4872877400",
+    "short": "АМ4",
+    "description": "Адресная метка групповая",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "42b3c448-2fdd-43d4-aee0-f173cb8d6cf8",
+    "short": "АМП",
+    "description": "Адресная метка пожарная",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "a9ff1416-d5fe-4a66-835d-cbda790d547e",
+    "short": "АМП2",
+    "description": "Адресная метка пожарная групповая",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "fe44e469-55fb-4079-a50d-a0e4c098f0ac",
+    "short": "АМП4",
+    "description": "Адресная метка пожарная групповая",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "cd3f6c78-f9e9-4386-aa14-c1472b2d20bd",
+    "short": "ИВЭПР",
+    "description": "Источник вторичного электропитания резервированный адресный",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "8645d1c1-0d1f-4fdf-bb0f-a9c4b19039db",
+    "short": "МАВ2",
+    "description": "Метка адресная выключаемая групповая",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "bd678122-3965-4b9a-bd14-8266fa8decb9",
+    "short": "МАВ4",
+    "description": "Метка адресная выключаемая групповая",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "0b1bd00d-680b-4a80-ac9a-659fd7f85bb4",
+    "short": "МВП",
+    "description": "Модуль ветвления и подпитки",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "118a822d-25f0-429a-a1e8-3efeb40900e0",
+    "short": "Линия",
+    "description": "Линия МВП",
+    "category": "Прочие",
+    "no_address": true,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "a0f70d76-a348-4aba-a68e-531c6f6b1461",
+    "short": "МИ",
+    "description": "Модуль-изолятор",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "e3bf33fa-8650-47f1-b182-162161caf077",
+    "short": "МСВ",
+    "description": "Модуль связи ведущий",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "f9e53403-1bb8-4ae5-ad41-d93ba6eab675",
+    "short": "ИВМС",
+    "description": "Извещатель модуля связи с вещественным значением",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "df7c55fe-afce-4202-9fa1-1e625b61288c",
+    "short": "ИДМС",
+    "description": "Извещатель дискретный модуля связи",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "08e4a753-ddd4-4fb7-a809-9447068192b8",
+    "short": "ИЗМС",
+    "description": "Извещатель модуля связи со значением",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "c0ee8fb4-ffe6-4e6b-a957-35206ed0e13b",
+    "short": "ИММС",
+    "description": "Извещатель модификационный модуль связи",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "127cf67c-1275-4dc3-8aed-216fa29bcfa9",
+    "short": "ИПС",
+    "description": "Извещатель-преобразователь состояния",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "391d8f9a-0f86-4df8-826e-b77e21b853b9",
+    "short": "МСП",
+    "description": "Модуль связи подчиненный",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "9324c68b-3b66-4176-a31f-281b5380ca9f",
+    "short": "ОМСП",
+    "description": "Сигнал МСП",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "7c329145-1619-4c28-8665-21054b2d95b4",
+    "short": "МТС",
+    "description": "Модуль термосопротивления",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "ccbabf42-f134-47e6-af5f-51d82e5f77a5",
+    "short": "УДП 513-12",
+    "description": "Устройство дистанционного пуска",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "f3da6fb2-2b6b-46e4-892a-5cebd39c05a4",
+    "short": "УДП-ИКЗ",
+    "description": "Устройство дистанционного пуска с изолятором",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "45be5d60-cfa6-4972-a1a1-264dbf93549c",
+    "short": "УДПЭ",
+    "description": "Устройство дистанционного пуска ИП535-07ea-R2-\"ПУСК\"",
+    "category": "Прочие",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "8df7c57f-c788-4ce1-99f5-622a18af4af1",
+    "short": "КВ",
+    "description": "Контроллер Wiegand",
+    "category": "Контроль доступа",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "cef793ca-7e3e-446c-82de-a032445b6cba",
+    "short": "КД",
+    "description": "Контроллер доступа",
+    "category": "Контроль доступа",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "2e9f2b6a-d707-4007-842c-664d6bcbe9f1",
+    "short": "КДЗ",
+    "description": "Замок КД",
+    "category": "Контроль доступа",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "fd24e2ea-b3cf-4f7f-b73a-d60f8749d685",
+    "short": "КДК",
+    "description": "Концевик(кнопка) КД",
+    "category": "Контроль доступа",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "ae315d83-ecf5-4e75-801b-cb3f6ede8fb8",
+    "short": "КДКВ",
+    "description": "КВ КД",
+    "category": "Контроль доступа",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "eb21b6ce-6ae8-40c5-92c7-5111d8418163",
+    "short": "КДТД",
+    "description": "ТД КД",
+    "category": "Контроль доступа",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "cdeac410-1b73-4c8b-bbe6-4d829e168a77",
+    "short": "АЛС",
+    "description": "Линия КД",
+    "category": "Контроль доступа",
+    "no_address": true,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "d296debc-8993-4798-a2bc-0410fb79e366",
+    "short": "НСЧ",
+    "description": "Наборник кодовый со считывателем",
+    "category": "Контроль доступа",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "6260f52c-d047-4f64-bfe8-b9d0547a39b4",
+    "short": "АБПЦ",
+    "description": "Адресный барьер пусковой цепи",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "d59115a5-b3a6-4d76-a744-0b719f81b15d",
+    "short": "АБТК2",
+    "description": "Адресный барьер термокабеля на 2 входа",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "45ba7a5e-bf4b-4f63-b80e-95fe422dc70d",
+    "short": "АБТК",
+    "description": "Адресный барьер термокабеля",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "71b8e463-4927-4ecd-823e-d59179c9ed29",
+    "short": "АБШС2",
+    "description": "Адресный барьер шлейфа сигнализации на 2 входа",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": true,
+    "flag5": true
+  },
+  {
+    "uid": "7c464c3a-ddc5-496a-9747-4ca93b774dca",
+    "short": "АБШС",
+    "description": "Адресный барьер шлейфа сигнализации",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "58795922-f023-4a90-bcec-acdb3cd0725f",
+    "short": "ЗОВ",
+    "description": "Оповещатель свето-звуковой взрывозащищенный",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "10dca010-257e-4d81-b090-72903e0cb029",
+    "short": "ИОЛИТ",
+    "description": "Извещатель пламени",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "c0a93d79-9a7f-46af-a190-855f32759a05",
+    "short": "ИП 101-07a-R2",
+    "description": "Извещатель пожарный тепловой взрывозащищенный Эридан",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "ea381c59-3b98-4430-a8ea-80f39a3da609",
+    "short": "ИПП-3-ИК",
+    "description": "Извещатель пожарный пламени взрывозащищенный Гелиос 3 ИК",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "86154d9a-24a9-47e2-9b6f-32463ef55d97",
+    "short": "ИПП-ИК/УФ",
+    "description": "Извещатель пожарный пламени взрывозащищенный Гелиос ИК/УФ",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "528da6a8-f4da-4ff6-93b8-2e355f33afe4",
+    "short": "ИПРЭ",
+    "description": "Извещатель пожарный ручной Эридан",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "adc56b8f-0b5d-40e3-933a-9e97f3c8649f",
+    "short": "ИПТЭ",
+    "description": "Извещатель пожарный тепловой Эридан",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "4f9dfcdd-b98b-4d2b-bd7e-635bb5728dce",
+    "short": "СКОПА",
+    "description": "Оповещатель взрывозащищенный световой",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "6ac0beee-19e7-4aae-a107-6d52cf87ead9",
+    "short": "СКОПА-3",
+    "description": "Оповещатель взрывозащищенный светозвуковой",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "6656f587-16d7-48b0-acc0-b4f24f79ed8a",
+    "short": "СКОПА-С",
+    "description": "СКОПА-С",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  },
+  {
+    "uid": "7da4bcc5-8290-477d-9f0e-26c02e7bf61a",
+    "short": "СКОПА-3",
+    "description": "Оповещатель взрывозащищенный светозвуковой",
+    "category": "Устройства взрывозащиты",
+    "no_address": false,
+    "is_group": false,
+    "flag5": false
+  }
+]
