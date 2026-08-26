@@ -7,8 +7,22 @@ name = "fscp-mcp"
 version = "0.1.0"
 description = "MCP-сервер для чтения конфигураций .fscp (СПЗ Рубеж-Глобал)"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = ["mcp>=2.1.1"]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: System :: Monitoring",
+    "Natural Language :: Russian",
+]
+
+[project.urls]
+Homepage = "https://github.com/qui364/fscp-mcp"
+Repository = "https://github.com/qui364/fscp-mcp"
 
 [project.optional-dependencies]
 img = ["pillow>=12.3"]

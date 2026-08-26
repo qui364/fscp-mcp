@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from fscp_mcp import archive
@@ -67,7 +69,11 @@ def test_handle_переиспользуется_для_того_же_файла
 def test_изменение_файла_на_диске_обесценивает_handle(tmp_path):
     path = factories.build(tmp_path / "меняется.fscp")
     opened, _ = archive.open_archive(path)
+    # mtime двигаем явно: запись сразу после создания файла может уложиться в
+    # разрешение таймера файловой системы и оставить отметку прежней.
+    stamp = path.stat().st_mtime + 10
     path.write_bytes(path.read_bytes() + b"\x00")
+    os.utime(path, (stamp, stamp))
     with pytest.raises(archive.FscpError, match="изменился на диске"):
         archive.session(opened)
 

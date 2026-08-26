@@ -1,0 +1,31 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    # Тесты самодостаточны: конфигурация собирается в tests/factories.py, а
+    # проверки по реальным файлам (FSCP_TEST_CONFIGS) без переменной пропускаются.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+
+      - run: python -m pip install -e ".[dev,img]"
+
+      - run: python -m pytest -q
+        env:
+          PYTHONUTF8: "1"
+          PYTHONIOENCODING: "utf-8"
